@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoSense Campus AI — Autonomous Sustainability & IoT Telemetry</title>
+
+  <!-- Favicon (browser tab icon). To use your own logo, replace href with "logo.png" -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            dark: {
+              950: '#030712',
+              900: '#080d1a',
+              850: '#0c1324',
+              800: '#111b33',
+              700: '#1e293b',
+            },
+            nvidiaGreen: '#76b900',
+            royalBlue: {
+              400: '#38bdf8',
+              500: '#0284c7',
+              600: '#004ec4',
+              700: '#003ea0',
+            }
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 40px -10px rgba(56, 189, 248, 0.25)',
+            'glow-green': '0 0 40px -10px rgba(118, 185, 0, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030712;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+
+    .grid-backdrop {
+      background-size: 60px 60px;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+    }
+
+    @keyframes pingSlow {
+      0%   { transform: scale(1);   opacity: 0.9; }
+      50%  { transform: scale(1.6); opacity: 0.2; }
+      100% { transform: scale(1);   opacity: 0.9; }
+    }
+    .node-pulse { animation: pingSlow 3s ease-in-out infinite; }
+
+    .nvidia-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(180deg, rgba(17,27,51,0.6) 0%, rgba(8,13,26,0.9) 100%);
+    }
+    .nvidia-card:hover {
+      border-color: rgba(118,185,0,0.6);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px -10px rgba(118,185,0,0.2);
+    }
+
+    :focus-visible { outline: 2px solid #76b900; outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden selection:bg-nvidiaGreen selection:text-black">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 bg-[#030712]/90 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+
+      <!-- Left: Explore menu & search -->
+      <div class="flex items-center gap-4 sm:gap-6">
+        <button
+          type="button"
+          onclick="toggleMegaMenu()"
+          id="exploreBtn"
+          aria-expanded="false"
+          aria-controls="megaMenu"
+          class="group flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-wider uppercase text-white hover:text-nvidiaGreen transition px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/20"
+        >
+          <span>Explore</span>
+          <i id="exploreChevron" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-300"></i>
+        </button>
+
+        <div class="relative hidden md:block w-56 lg:w-72">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input
+            type="text"
+            aria-label="Search telemetry"
+            placeholder="Search telemetry, nodes, papers..."
+            class="w-full pl-9 pr-4 py-1.5 text-xs bg-white/5 border border-white/10 rounded-full text-slate-200 placeholder-slate-400 focus:outline-none focus:border-nvidiaGreen focus:ring-1 focus:ring-nvidiaGreen transition"
+          >
+        </div>
+      </div>
+
+      <!-- Center: Brand -->
+      <a href="#hero" class="flex items-center gap-3 group">
+        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-[#004ec4] p-[1.5px] shadow-lg group-hover:shadow-glow-cyan transition">
+          <div class="w-full h-full bg-dark-900 rounded-[10px] flex items-center justify-center text-xl">🌱</div>
+        </div>
+        <div class="text-left">
+          <div class="font-display font-bold text-base sm:text-lg tracking-tight text-white flex items-center gap-1.5">
+            EcoSense <span class="text-nvidiaGreen font-extrabold">Campus AI</span>
+          </div>
+          <div class="text-[10px] text-slate-400 tracking-widest uppercase font-mono hidden sm:block">
+            IoT Autonomous Telemetry
+          </div>
+        </div>
+      </a>
+
+      <!-- Right: Links & auth -->
+      <div class="flex items-center gap-3 sm:gap-6">
+        <nav class="hidden xl:flex items-center gap-6 text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <a href="#destinations" class="hover:text-nvidiaGreen transition">Dashboards</a>
+          <a href="#interactiveNodeMap" class="hover:text-nvidiaGreen transition">Live Nodes</a>
+          <a href="#destinations" class="hover:text-nvidiaGreen transition">AI Engine</a>
+          <a href="#interactiveNodeMap" class="hover:text-nvidiaGreen transition">IoT Fabric</a>
+        </nav>
+
+        <a
+          href="#interactiveNodeMap"
+          class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-red-950/60 border border-red-500/40 text-red-400 hover:bg-red-900/40 transition"
+        >
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          <span>Campus Live</span>
+        </a>
+
+        <button
+          type="button"
+          id="signUpNavBtn"
+          onclick="openAuthModal('student', 'signup')"
+          class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition-all active:scale-95"
+        >
+          <i class="fa-solid fa-user-plus text-xs"></i>
+          <span>Sign Up</span>
+        </button>
+
+        <button
+          type="button"
+          id="authNavBtn"
+          onclick="handleAuthNavClick()"
+          class="flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wider uppercase rounded-xl bg-nvidiaGreen hover:bg-[#68a500] text-black shadow-glow-green transition-all transform active:scale-95 max-w-[200px]"
+        >
+          <i id="authNavIcon" class="fa-regular fa-user text-xs"></i>
+          <span id="authNavText" class="truncate">Sign In</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mega-menu -->
+    <div id="megaMenu" class="hidden border-t border-white/10 bg-dark-900/95 backdrop-blur-2xl px-6 py-8 shadow-2xl">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h4 class="text-xs font-mono font-bold text-nvidiaGreen uppercase tracking-widest mb-3">Monitoring Systems</h4>
+          <ul class="space-y-2 text-sm text-slate-300">
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-gauge text-slate-500"></i> Environmental Dashboard</a></li>
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-bolt text-slate-500"></i> Energy Grid &amp; Battery Storage</a></li>
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-wind text-slate-500"></i> Air Quality Index (AQI Network)</a></li>
+            <li><a href="#interactiveNodeMap" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-users text-slate-500"></i> Dynamic Occupancy Heatmaps</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-mono font-bold text-royalBlue-400 uppercase tracking-widest mb-3">Autonomous Controls</h4>
+          <ul class="space-y-2 text-sm text-slate-300">
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-door-open text-slate-500"></i> Classroom 101 Smart Actuation</a></li>
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-snowflake text-slate-500"></i> Automated HVAC Scheduling</a></li>
+            <li><a href="#destinations" onclick="closeMegaMenu()" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-lightbulb text-slate-500"></i> Daylight Harvesting LED Banks</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest mb-3">Institutional Roles</h4>
+          <ul class="space-y-2 text-sm text-slate-300">
+            <li><button type="button" onclick="openAuthModal('admin')" class="hover:text-white transition text-left flex items-center gap-2"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Facility Administrator Portal</button></li>
+            <li><button type="button" onclick="openAuthModal('faculty')" class="hover:text-white transition text-left flex items-center gap-2"><i class="fa-solid fa-chalkboard-user text-blue-400"></i> Faculty / Lecture Hall Override</button></li>
+            <li><button type="button" onclick="openAuthModal('student')" class="hover:text-white transition text-left flex items-center gap-2"><i class="fa-solid fa-graduation-cap text-amber-400"></i> Student Telemetry Access</button></li>
+          </ul>
+        </div>
+        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex flex-col justify-between">
+          <div>
+            <div class="text-xs uppercase font-mono text-emerald-400 font-bold mb-1">Status: Active Grid</div>
+            <p class="text-xs text-slate-300">142 smart sensor nodes currently dispatching MQTT telemetry across 4 campus blocks.</p>
+          </div>
+          <button type="button" onclick="openAuthModal('admin')" class="mt-4 w-full py-2 bg-[#004ec4] hover:bg-[#003da0] text-white text-xs font-bold rounded-xl transition">
+            Launch Admin Center
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <section id="hero" class="relative min-h-[90vh] flex flex-col justify-between overflow-hidden pt-12 pb-8">
+
+    <canvas id="heroCanvas" class="absolute inset-0 w-full h-full z-0" aria-hidden="true"></canvas>
+
+    <div class="absolute inset-0 grid-backdrop z-[1] pointer-events-none"></div>
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] max-w-full h-[500px] bg-gradient-to-tr from-nvidiaGreen/15 via-[#004ec4]/20 to-transparent blur-[140px] pointer-events-none z-[1]"></div>
+    <div class="absolute -bottom-10 right-0 w-[500px] max-w-full h-[400px] bg-emerald-500/10 blur-[120px] pointer-events-none z-[1]"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-auto">
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/15 text-xs font-mono font-semibold uppercase tracking-wider text-nvidiaGreen mb-6 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-nvidiaGreen animate-ping"></span>
+        <span>Next-Gen IoT &amp; Sustainability Architecture</span>
+      </div>
+
+      <h1 class="font-display font-extrabold text-4xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tight leading-[1.05] text-white max-w-5xl">
+        Intelligent Campus.<br>
+        <span class="bg-gradient-to-r from-white via-slate-200 to-slate-500 bg-clip-text text-transparent">Zero Footprint.</span>
+      </h1>
+
+      <p class="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl font-light leading-relaxed">
+        The autonomous AI &amp; IoT orchestration layer for institutional campuses. Real-time environmental sensing, automated classroom optimization, and predictive renewable energy intelligence.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4 sm:gap-5">
+        <a
+          href="#destinations"
+          class="px-8 py-4 rounded-xl bg-nvidiaGreen hover:bg-[#68a500] text-black font-bold text-sm tracking-wider uppercase transition-all shadow-glow-green flex items-center gap-3 transform hover:-translate-y-0.5"
+        >
+          <span>Launch Live Dashboard</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </a>
+
+        <button
+          type="button"
+          onclick="openAuthModal()"
+          class="px-8 py-4 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm tracking-wider uppercase border border-white/20 hover:border-white/40 transition-all flex items-center gap-2.5 backdrop-blur-md"
+        >
+          <i class="fa-solid fa-lock text-xs text-nvidiaGreen"></i>
+          <span>Institutional Portal Login</span>
+        </button>
+
+        <a
+          href="#interactiveNodeMap"
+          class="hidden sm:flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-white transition ml-3"
+        >
+          <i class="fa-solid fa-circle-dot text-emerald-400"></i>
+          <span>View Campus Node Grid</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Bottom ticker -->
+    <div class="relative z-10 max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 w-full mt-12">
+      <div class="border-t border-white/15 pt-5 pb-2 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-slate-300">
+
+        <a href="#interactiveNodeMap" class="group border-l border-white/20 pl-4 hover:border-nvidiaGreen transition">
+          <div class="text-[10px] uppercase font-mono tracking-widest text-slate-400">Telemetry Nodes</div>
+          <div class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5 flex items-center gap-2">
+            <span id="tickerNodes">142</span>
+            <span class="text-xs text-emerald-400 font-normal font-sans">Active</span>
+          </div>
+        </a>
+
+        <a href="#interactiveNodeMap" class="group border-l border-white/20 pl-4 hover:border-nvidiaGreen transition">
+          <div class="text-[10px] uppercase font-mono tracking-widest text-slate-400">Campus Power Load</div>
+          <div class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5 flex items-center gap-2 flex-wrap">
+            <span><span id="tickerPower">120</span> <span class="text-sm font-normal text-slate-400">W</span></span>
+            <span class="text-xs text-emerald-400 font-semibold font-sans">-18% saved</span>
+          </div>
+        </a>
+
+        <a href="#destinations" class="group border-l border-white/20 pl-4 hover:border-nvidiaGreen transition">
+          <div class="text-[10px] uppercase font-mono tracking-widest text-slate-400">Campus Air Quality</div>
+          <div class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5 flex items-center gap-2">
+            <span>Good</span> <span class="text-xs font-mono text-emerald-400">(AQI 42)</span>
+          </div>
+        </a>
+
+        <div class="border-l border-white/20 pl-4 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] uppercase font-mono tracking-widest text-slate-400">Solar Harvesting</div>
+            <div class="text-xl sm:text-2xl font-bold font-display text-white mt-0.5">
+              <span>85.4</span> <span class="text-sm font-normal text-slate-400">kW</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="toggleHeroParticles()"
+            id="particleToggleBtn"
+            class="w-8 h-8 rounded-full border border-white/20 hover:border-white/50 flex items-center justify-center text-slate-300 hover:text-white transition"
+            title="Toggle ambient canvas simulation"
+            aria-label="Toggle ambient canvas simulation"
+          >
+            <i class="fa-solid fa-pause text-xs" id="particleIcon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FEATURE MODULES ================= -->
+  <section id="destinations" class="relative z-10 py-24 bg-dark-900 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-16">
+        <div>
+          <div class="text-xs font-mono font-bold uppercase tracking-widest text-nvidiaGreen mb-2">
+            Mission Control &amp; Navigation
+          </div>
+          <h2 class="font-display font-extrabold text-3xl sm:text-5xl text-white tracking-tight">
+            Explore Campus Modules
+          </h2>
+        </div>
+        <p class="text-sm text-slate-400 max-w-md">
+          Access specialized operational consoles for real-time telemetry, smart actuator automation, and neural predictive analytics.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- 1: Monitoring Dashboard -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
+              <span class="text-[11px] font-mono font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                LIVE METRICS
+              </span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">Campus Monitoring Dashboard</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Complete sensor telemetry grid showing real-time environmental metrics and room occupancy across campus blocks.
+            </p>
+
+            <div class="grid grid-cols-3 gap-2 mt-6 p-3 bg-black/40 rounded-2xl border border-white/5">
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">Temp</span><p class="text-sm font-bold text-white font-display mt-0.5">28°C</p></div>
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">Humidity</span><p class="text-sm font-bold text-white font-display mt-0.5">60%</p></div>
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">Occupancy</span><p class="text-sm font-bold text-white font-display mt-0.5">12 Ppl</p></div>
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">Light</span><p class="text-sm font-bold text-white font-display mt-0.5">75%</p></div>
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">AQI</span><p class="text-sm font-bold text-emerald-400 font-display mt-0.5">Good</p></div>
+              <div class="text-center p-1.5"><span class="text-[10px] text-slate-400 uppercase font-mono">Power</span><p class="text-sm font-bold text-royalBlue-400 font-display mt-0.5">120 W</p></div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">Enter Telemetry View</span>
+            <button type="button" aria-label="Enter telemetry view" onclick="launchDestination('dashboard')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2: Smart Room Automation -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🏫</div>
+              <span class="text-[11px] font-mono font-bold bg-blue-950/80 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-full">ACTUATORS</span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">Smart Room Automation</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Direct actuator controls for Classroom 101, Science Labs, and Lecture Theaters. Smart relays for AC, ventilation, and lighting arrays.
+            </p>
+
+            <div class="mt-6 p-3 bg-black/40 rounded-2xl border border-white/5 space-y-2.5">
+              <div class="flex items-center justify-between text-xs gap-2">
+                <span class="text-slate-300 flex items-center gap-2"><i class="fa-solid fa-snowflake text-cyan-400"></i> Classroom 101 HVAC</span>
+                <button type="button" data-label="AUTO (24°C)" onclick="simulateToggle(this)" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold whitespace-nowrap">AUTO (24°C)</button>
+              </div>
+              <div class="flex items-center justify-between text-xs gap-2">
+                <span class="text-slate-300 flex items-center gap-2"><i class="fa-solid fa-lightbulb text-amber-400"></i> Ambient Daylighting</span>
+                <button type="button" data-label="DIMMED 60%" onclick="simulateToggle(this)" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold whitespace-nowrap">DIMMED 60%</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">Open Room Control Panel</span>
+            <button type="button" aria-label="Open room control panel" onclick="launchDestination('rooms')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3: AI Predictive Engine -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🧠</div>
+              <span class="text-[11px] font-mono font-bold bg-purple-950/80 text-purple-400 border border-purple-500/30 px-2.5 py-1 rounded-full">NEURAL MODEL</span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">AI Predictive Engine</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Forecasts campus energy consumption 24 hours in advance using timetable schedules, outdoor weather data, and solar generation.
+            </p>
+
+            <div class="mt-6 p-3 bg-black/40 rounded-2xl border border-white/5 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Peak Shaving Efficiency</span>
+                <span class="font-mono text-nvidiaGreen font-bold">+28.4%</span>
+              </div>
+              <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-gradient-to-r from-nvidiaGreen to-cyan-400 h-1.5 rounded-full w-[82%]"></div>
+              </div>
+              <div class="flex justify-between text-[10px] text-slate-400 pt-1 font-mono">
+                <span>Storage Buffer: 94%</span>
+                <span>Self-Sufficiency: Optimal</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">View Neural Forecasts</span>
+            <button type="button" aria-label="View neural forecasts" onclick="launchDestination('ai')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4: Air Quality & Safety -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🪟</div>
+              <span class="text-[11px] font-mono font-bold bg-cyan-950/80 text-cyan-400 border border-cyan-500/30 px-2.5 py-1 rounded-full">ENVIRONMENTAL</span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">Air Quality &amp; Safety</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Hyper-local indoor and outdoor air monitoring. Automated dampers flush stagnant air when CO₂ crosses 700 ppm.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3 mt-6">
+              <div class="p-3 bg-black/40 rounded-xl border border-white/5">
+                <span class="text-[10px] font-mono text-slate-400">Indoor CO₂</span>
+                <p class="text-base font-bold text-white mt-0.5">430 <span class="text-xs font-normal text-slate-400">ppm</span></p>
+              </div>
+              <div class="p-3 bg-black/40 rounded-xl border border-white/5">
+                <span class="text-[10px] font-mono text-slate-400">PM2.5 Index</span>
+                <p class="text-base font-bold text-emerald-400 mt-0.5">9 <span class="text-xs font-normal text-slate-400">µg/m³</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">Launch Safety Telemetry</span>
+            <button type="button" aria-label="Launch safety telemetry" onclick="launchDestination('safety')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5: Administration -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛡️</div>
+              <span class="text-[11px] font-mono font-bold bg-amber-950/80 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full">ADMIN LEVEL</span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">Campus Administration</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Institutional security gateway: manage hardware sensor keys, calibrate microcontroller nodes, and provision staff access rights.
+            </p>
+
+            <div class="mt-6 p-3 bg-black/40 rounded-2xl border border-white/5 space-y-2 text-xs">
+              <div class="flex items-center justify-between text-slate-300"><span>Active ESP32 Hubs:</span><span class="font-mono text-white">4 / 4 Online</span></div>
+              <div class="flex items-center justify-between text-slate-300"><span>Firmware Version:</span><span class="font-mono text-slate-400">v2.4.1-OTA</span></div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">Sign In as Administrator</span>
+            <button type="button" aria-label="Sign in as administrator" onclick="openAuthModal('admin')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-lock text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 6: Student Research API -->
+        <div class="nvidia-card rounded-3xl p-7 flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🎓</div>
+              <span class="text-[11px] font-mono font-bold bg-indigo-950/80 text-indigo-400 border border-indigo-500/30 px-2.5 py-1 rounded-full">ACADEMIC</span>
+            </div>
+
+            <h3 class="font-display font-bold text-2xl text-white group-hover:text-nvidiaGreen transition">Student Research API</h3>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Open campus telemetry dataset for undergraduate &amp; postgraduate data science research. REST endpoints, WebSocket feeds, and CSV streams.
+            </p>
+
+            <div class="mt-6 p-3 bg-black/40 rounded-2xl border border-white/5">
+              <div class="text-[11px] font-mono text-emerald-400 flex items-center gap-2 break-all">
+                <i class="fa-solid fa-terminal text-slate-500"></i> GET /api/v2/telemetry/live
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1 font-mono">Response time: ~18ms latency</p>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-5 border-t border-white/10 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 group-hover:text-white transition">Access API Portal</span>
+            <button type="button" aria-label="Access API portal" onclick="launchDestination('api')" class="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-nvidiaGreen group-hover:text-black text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CAMPUS NODE GRID ================= -->
+  <section id="interactiveNodeMap" class="py-24 bg-dark-950 relative border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="text-xs font-mono font-bold uppercase tracking-widest text-nvidiaGreen mb-2">Hardware &amp; Mesh Architecture</div>
+        <h2 class="font-display font-extrabold text-3xl sm:text-5xl text-white tracking-tight">Campus Micro-Grid &amp; Telemetry Mesh</h2>
+        <p class="mt-4 text-sm text-slate-400 leading-relaxed">
+          Distributed edge processors communicating over secure LoRaWAN and campus Wi-Fi backbones to synchronize environmental data every 3 seconds.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <div class="bg-dark-900 p-6 rounded-3xl border border-white/10 hover:border-royalBlue-400 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono text-royalBlue-400 font-bold">ZONE-01</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 node-pulse"></span>
+          </div>
+          <h4 class="font-display font-bold text-lg text-white">Block A — Engineering</h4>
+          <p class="text-xs text-slate-400 mt-1">Classroom 101, Robotics Lab &amp; Cleanrooms</p>
+          <div class="mt-5 space-y-2 text-xs font-mono pt-4 border-t border-white/5">
+            <div class="flex justify-between text-slate-400"><span>Sensors:</span> <span class="text-white">38 Online</span></div>
+            <div class="flex justify-between text-slate-400"><span>Current Load:</span> <span class="text-emerald-400">120 W</span></div>
+            <div class="flex justify-between text-slate-400"><span>Occupancy:</span> <span class="text-white">12 Persons</span></div>
+          </div>
+          <button type="button" onclick="inspectZone('Block A')" class="mt-5 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-semibold rounded-xl text-slate-300 transition">Inspect Block A</button>
+        </div>
+
+        <div class="bg-dark-900 p-6 rounded-3xl border border-white/10 hover:border-emerald-400 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono text-emerald-400 font-bold">ZONE-02</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 node-pulse"></span>
+          </div>
+          <h4 class="font-display font-bold text-lg text-white">Block B — Natural Sciences</h4>
+          <p class="text-xs text-slate-400 mt-1">Chemistry Labs &amp; Greenhouse Nodes</p>
+          <div class="mt-5 space-y-2 text-xs font-mono pt-4 border-t border-white/5">
+            <div class="flex justify-between text-slate-400"><span>Sensors:</span> <span class="text-white">44 Online</span></div>
+            <div class="flex justify-between text-slate-400"><span>Current Load:</span> <span class="text-emerald-400">340 W</span></div>
+            <div class="flex justify-between text-slate-400"><span>Occupancy:</span> <span class="text-white">28 Persons</span></div>
+          </div>
+          <button type="button" onclick="inspectZone('Block B')" class="mt-5 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-semibold rounded-xl text-slate-300 transition">Inspect Block B</button>
+        </div>
+
+        <div class="bg-dark-900 p-6 rounded-3xl border border-white/10 hover:border-amber-400 transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono text-amber-400 font-bold">ZONE-03</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 node-pulse"></span>
+          </div>
+          <h4 class="font-display font-bold text-lg text-white">Library &amp; Study Commons</h4>
+          <p class="text-xs text-slate-400 mt-1">Silent Reading Halls &amp; Server Rooms</p>
+          <div class="mt-5 space-y-2 text-xs font-mono pt-4 border-t border-white/5">
+            <div class="flex justify-between text-slate-400"><span>Sensors:</span> <span class="text-white">32 Online</span></div>
+            <div class="flex justify-between text-slate-400"><span>Current Load:</span> <span class="text-emerald-400">210 W</span></div>
+            <div class="flex justify-between text-slate-400"><span>Occupancy:</span> <span class="text-white">54 Persons</span></div>
+          </div>
+          <button type="button" onclick="inspectZone('Library Commons')" class="mt-5 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-semibold rounded-xl text-slate-300 transition">Inspect Commons</button>
+        </div>
+
+        <div class="bg-dark-900 p-6 rounded-3xl border border-white/10 hover:border-nvidiaGreen transition">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-mono text-nvidiaGreen font-bold">ZONE-04</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 node-pulse"></span>
+          </div>
+          <h4 class="font-display font-bold text-lg text-white">Auditorium &amp; Solar Array</h4>
+          <p class="text-xs text-slate-400 mt-1">Main Hall, Sports Arena &amp; Inverters</p>
+          <div class="mt-5 space-y-2 text-xs font-mono pt-4 border-t border-white/5">
+            <div class="flex justify-between text-slate-400"><span>Sensors:</span> <span class="text-white">28 Online</span></div>
+            <div class="flex justify-between text-slate-400"><span>Solar Output:</span> <span class="text-nvidiaGreen font-bold">+85.4 kW</span></div>
+            <div class="flex justify-between text-slate-400"><span>Grid Status:</span> <span class="text-white">Net Producer</span></div>
+          </div>
+          <button type="button" onclick="inspectZone('Auditorium & Solar')" class="mt-5 w-full py-2 bg-white/5 hover:bg-white/10 text-xs font-semibold rounded-xl text-slate-300 transition">Inspect Solar Grid</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= AUTH MODAL (single instance) ================= -->
+  <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="bg-dark-900 border border-white/20 max-w-lg w-full rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative max-h-[95vh] overflow-y-auto" id="authModalBox">
+
+      <div class="h-1.5 w-full bg-gradient-to-r from-nvidiaGreen via-[#004ec4] to-emerald-400"></div>
+
+      <div class="p-6 sm:p-8 pb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl">🌱</div>
+          <div>
+            <h3 id="authTitle" class="font-display font-bold text-xl text-white">Institutional Authentication</h3>
+            <p class="text-xs text-slate-400">EcoSense Campus AI Telemetry Gateway</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAuthModal()" aria-label="Close" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="px-6 sm:px-8 pb-2">
+
+        <!-- Sign in / Sign up mode tabs -->
+        <div class="grid grid-cols-2 gap-2 mb-5 border-b border-white/10">
+          <button type="button" id="mode-signin" onclick="setAuthMode('signin')" class="pb-3 text-xs font-bold uppercase tracking-wider border-b-2 border-nvidiaGreen text-white transition">Sign in</button>
+          <button type="button" id="mode-signup" onclick="setAuthMode('signup')" class="pb-3 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-white transition">Create account</button>
+        </div>
+
+        <!-- Role pills -->
+        <div id="rolePills" class="grid grid-cols-3 gap-2 p-1 bg-black/50 rounded-2xl border border-white/10 mb-6">
+          <button type="button" onclick="selectModalRole('admin')"   id="modal-role-admin"   class="py-2 text-xs font-bold rounded-xl transition bg-nvidiaGreen text-black shadow-sm">Admin</button>
+          <button type="button" onclick="selectModalRole('faculty')" id="modal-role-faculty" class="py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white">Faculty</button>
+          <button type="button" onclick="selectModalRole('student')" id="modal-role-student" class="py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white">Student</button>
+        </div>
+
+        <!-- Inline status message -->
+        <div id="authMessage" class="hidden p-3 rounded-xl mb-4 text-xs font-semibold" role="status" aria-live="polite"></div>
+
+        <form id="loginForm" class="space-y-4" novalidate>
+          <div id="nameField" class="hidden">
+            <label for="modalUserName" class="block text-xs font-semibold text-slate-300 mb-1.5 font-mono">Full name</label>
+            <div class="relative">
+              <i class="fa-regular fa-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+              <input
+                type="text" id="modalUserName" autocomplete="name"
+                placeholder="Your full name"
+                class="w-full pl-9 pr-4 py-2.5 text-xs bg-black/40 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-nvidiaGreen transition font-mono"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label for="modalUserEmail" class="block text-xs font-semibold text-slate-300 mb-1.5 font-mono">Institutional ID / Email</label>
+            <div class="relative">
+              <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+              <input
+                type="email" id="modalUserEmail" required autocomplete="username"
+                placeholder="name@campus.edu"
+                class="w-full pl-9 pr-4 py-2.5 text-xs bg-black/40 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-nvidiaGreen transition font-mono"
+              >
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="modalUserPass" class="block text-xs font-semibold text-slate-300 font-mono">Security Access Token</label>
+              <button type="button" id="forgotBtn" class="text-[11px] text-nvidiaGreen hover:underline font-mono">Forgot token?</button>
+            </div>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+              <input
+                type="password" id="modalUserPass" required autocomplete="current-password"
+                placeholder="••••••••"
+                class="w-full pl-9 pr-10 py-2.5 text-xs bg-black/40 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-nvidiaGreen transition font-mono"
+              >
+              <button type="button" onclick="toggleModalPassword()" aria-label="Show or hide password" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <i class="fa-regular fa-eye text-xs" id="modalEyeIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="confirmField" class="hidden">
+            <label for="modalUserPass2" class="block text-xs font-semibold text-slate-300 mb-1.5 font-mono">Confirm access token</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+              <input
+                type="password" id="modalUserPass2" autocomplete="new-password"
+                placeholder="••••••••"
+                class="w-full pl-9 pr-4 py-2.5 text-xs bg-black/40 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-nvidiaGreen transition font-mono"
+              >
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5 font-mono">At least 6 characters.</p>
+          </div>
+
+          <button
+            type="submit" id="modalSubmitBtn"
+            class="w-full mt-2 py-3 px-4 rounded-xl bg-nvidiaGreen hover:bg-[#68a500] text-black font-bold text-xs uppercase tracking-wider transition shadow-glow-green flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+          >
+            <span id="btnModalText">Authenticate &amp; Enter Dashboard</span>
+            <i class="fa-solid fa-arrow-right text-xs" id="btnModalIcon"></i>
+          </button>
+        </form>
+
+        <div class="my-5 flex items-center gap-3">
+          <div class="flex-1 border-t border-white/10"></div>
+          <span class="text-[10px] uppercase font-mono text-slate-500 tracking-wider">Campus SSO</span>
+          <div class="flex-1 border-t border-white/10"></div>
+        </div>
+
+        <div class="mb-6">
+          <button type="button" id="googleBtn" class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition flex items-center justify-center gap-2">
+            <i class="fa-brands fa-google text-red-400"></i>
+            <span>Continue with Google Workspace</span>
+          </button>
+          <p class="text-center text-xs text-slate-400 mt-4">
+            <span id="switchPrompt">New to EcoSense?</span>
+            <button type="button" id="switchModeBtn" onclick="setAuthMode(authMode === 'signin' ? 'signup' : 'signin')" class="text-nvidiaGreen font-semibold hover:underline">Create an account</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toastNotification" role="status" aria-live="polite" class="fixed bottom-6 right-6 z-[60] transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none bg-dark-800 border border-white/20 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-nvidiaGreen"></i>
+    <span id="toastMsg">Action executed</span>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-[#02050c] border-t border-white/10 py-12 text-slate-400 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-base">🌱</div>
+        <div>
+          <div class="font-display font-bold text-white text-sm">EcoSense Campus AI</div>
+          <p class="text-[11px] text-slate-500">Autonomous Sustainable Campus Infrastructure</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-6 font-mono text-[11px]">
+        <a href="#hero" class="hover:text-nvidiaGreen transition">Back to Top</a>
+        <a href="#destinations" class="hover:text-nvidiaGreen transition">Dashboards</a>
+        <a href="#interactiveNodeMap" class="hover:text-nvidiaGreen transition">Node Fabric</a>
+        <button type="button" onclick="openAuthModal()" class="hover:text-nvidiaGreen transition text-white font-bold">Portal Access</button>
+      </div>
+
+      <div class="text-[11px] text-slate-500 font-mono text-center">
+        © 2026 EcoSense Systems • Demo data shown
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= UI SCRIPT (classic) ================= -->
+  <script>
+    // ---------- State ----------
+    let particlesActive = true;
+    let canvasAnimationId = null;
+    let selectedRole = 'admin';
+    let authMode = 'signin'; // 'signin' | 'signup'
+    let toastTimer = null;
+    let currentUser = null; // set by the Firebase module below
+
+    const roleLabels = {
+      admin: 'Facility Administrator',
+      faculty: 'Faculty & Lecturer',
+      student: 'Student Researcher'
+    };
+
+    // ---------- Mega menu ----------
+    function toggleMegaMenu() {
+      const menu = document.getElementById('megaMenu');
+      const open = menu.classList.toggle('hidden') === false;
+      document.getElementById('exploreBtn').setAttribute('aria-expanded', String(open));
+      document.getElementById('exploreChevron').classList.toggle('rotate-180', open);
+    }
+    function closeMegaMenu() {
+      document.getElementById('megaMenu').classList.add('hidden');
+      document.getElementById('exploreBtn').setAttribute('aria-expanded', 'false');
+      document.getElementById('exploreChevron').classList.remove('rotate-180');
+    }
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('megaMenu');
+      const btn = document.getElementById('exploreBtn');
+      if (!menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        closeMegaMenu();
+      }
+    });
+
+    // ---------- Auth modal ----------
+    function openAuthModal(role, mode) {
+      closeMegaMenu();
+      if (typeof role === 'string') selectedRole = role;
+      setAuthMode(mode === 'signup' ? 'signup' : 'signin');
+      clearAuthMessage();
+      const modal = document.getElementById('authModal');
+      const box = document.getElementById('authModalBox');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      // next frame so the transition runs
+      requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        box.classList.remove('scale-95');
+        box.classList.add('scale-100');
+        document.getElementById('modalUserEmail').focus();
+      });
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      const box = document.getElementById('authModalBox');
+      if (modal.classList.contains('hidden')) return;
+      modal.classList.add('opacity-0');
+      box.classList.remove('scale-100');
+      box.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('loginForm').reset();
+        clearAuthMessage();
+      }, 250);
+    }
+
+    document.getElementById('authModal').addEventListener('click', (e) => {
+      if (e.target.id === 'authModal') closeAuthModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeAuthModal(); closeMegaMenu(); }
+    });
+
+    function selectModalRole(role) {
+      if (!roleLabels[role]) role = 'admin';
+      selectedRole = role;
+      Object.keys(roleLabels).forEach((r) => {
+        const btn = document.getElementById('modal-role-' + r);
+        btn.className = r === role
+          ? 'py-2 text-xs font-bold rounded-xl transition bg-nvidiaGreen text-black shadow-sm'
+          : 'py-2 text-xs font-bold rounded-xl transition text-slate-400 hover:text-white';
+      });
+      // className above wipes the "hidden" class, so re-apply it
+      document.getElementById('modal-role-admin').classList.toggle('hidden', authMode === 'signup');
+    }
+
+    function getAuthMode() { return authMode; }
+    function getSelectedRole() { return selectedRole; }
+
+    function submitLabel() {
+      return authMode === 'signup' ? 'Create Account & Enter Dashboard' : 'Authenticate & Enter Dashboard';
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode === 'signup' ? 'signup' : 'signin';
+      const signup = authMode === 'signup';
+
+      // Public sign-up can never create an admin, so hide that role there
+      if (signup && selectedRole === 'admin') selectedRole = 'student';
+      document.getElementById('modal-role-admin').classList.toggle('hidden', signup);
+      const pills = document.getElementById('rolePills');
+      pills.classList.toggle('grid-cols-3', !signup);
+      pills.classList.toggle('grid-cols-2', signup);
+      selectModalRole(selectedRole);
+
+      document.getElementById('nameField').classList.toggle('hidden', !signup);
+      document.getElementById('confirmField').classList.toggle('hidden', !signup);
+      document.getElementById('forgotBtn').classList.toggle('hidden', signup);
+      document.getElementById('modalUserPass').autocomplete = signup ? 'new-password' : 'current-password';
+
+      document.getElementById('authTitle').textContent = signup ? 'Create Your Account' : 'Institutional Authentication';
+      document.getElementById('btnModalText').textContent = submitLabel();
+      document.getElementById('switchPrompt').textContent = signup ? 'Already have an account?' : 'New to EcoSense?';
+      document.getElementById('switchModeBtn').textContent = signup ? 'Sign in' : 'Create an account';
+
+      document.getElementById('mode-signin').className = 'pb-3 text-xs font-bold uppercase tracking-wider border-b-2 transition ' +
+        (signup ? 'border-transparent text-slate-400 hover:text-white' : 'border-nvidiaGreen text-white');
+      document.getElementById('mode-signup').className = 'pb-3 text-xs font-bold uppercase tracking-wider border-b-2 transition ' +
+        (signup ? 'border-nvidiaGreen text-white' : 'border-transparent text-slate-400 hover:text-white');
+
+      clearAuthMessage();
+    }
+
+    function toggleModalPassword() {
+      const pass = document.getElementById('modalUserPass');
+      const eye = document.getElementById('modalEyeIcon');
+      if (pass.type === 'password') {
+        pass.type = 'text';
+        eye.className = 'fa-regular fa-eye-slash text-xs text-nvidiaGreen';
+      } else {
+        pass.type = 'password';
+        eye.className = 'fa-regular fa-eye text-xs';
+      }
+    }
+
+    // Inline message helpers (textContent only, so no HTML injection)
+    function showAuthMessage(text, type) {
+      const box = document.getElementById('authMessage');
+      box.textContent = text;
+      box.className = 'p-3 rounded-xl mb-4 text-xs font-semibold border ' + (
+        type === 'success'
+          ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400'
+          : type === 'info'
+            ? 'bg-blue-950/60 border-blue-500/40 text-blue-300'
+            : 'bg-red-950/60 border-red-500/40 text-red-400'
+      );
+    }
+    function clearAuthMessage() {
+      const box = document.getElementById('authMessage');
+      box.textContent = '';
+      box.className = 'hidden p-3 rounded-xl mb-4 text-xs font-semibold';
+    }
+
+    // ---------- Nav sign-in / sign-out button ----------
+    function handleAuthNavClick() {
+      if (currentUser && typeof window.ecoSignOut === 'function') {
+        window.ecoSignOut();
+      } else {
+        openAuthModal();
+      }
+    }
+
+    function updateAuthUI(user, role) {
+      currentUser = user;
+      const text = document.getElementById('authNavText');
+      const icon = document.getElementById('authNavIcon');
+      document.getElementById('signUpNavBtn').classList.toggle('sm:inline-flex', !user);
+      if (user) {
+        const name = user.displayName || (user.email || 'Signed in').split('@')[0];
+        text.textContent = role ? `${name} · ${role}` : name;
+        icon.className = 'fa-solid fa-right-from-bracket text-xs';
+        document.getElementById('authNavBtn').title = 'Click to sign out';
+      } else {
+        text.textContent = 'Sign In';
+        icon.className = 'fa-regular fa-user text-xs';
+        document.getElementById('authNavBtn').title = '';
+      }
+    }
+
+    // ---------- Destinations ----------
+    function launchDestination(dest) {
+      if (dest === 'dashboard') {
+        showToast('Entering live campus monitoring dashboard...');
+        document.getElementById('interactiveNodeMap').scrollIntoView({ behavior: 'smooth' });
+      } else if (dest === 'rooms') {
+        if (!currentUser) { showToast('Sign in to control room actuators.', 'warn'); openAuthModal('faculty'); return; }
+        showToast('Accessing smart actuator controls for Classroom 101...');
+      } else if (dest === 'safety') {
+        showToast('Launching safety telemetry console...');
+      } else if (dest === 'ai') {
+        showToast('Loading neural forecast console...');
+      } else if (dest === 'api') {
+        showToast('Opening the research API portal...');
+      }
+    }
+
+    function inspectZone(zoneName) {
+      showToast(`Synchronized with ${zoneName} telemetry bus.`);
+    }
+
+    function simulateToggle(btn) {
+      if (!currentUser) {
+        showToast('Sign in to override actuators.', 'warn');
+        openAuthModal('faculty');
+        return;
+      }
+      const overridden = btn.dataset.overridden === '1';
+      if (!overridden) {
+        btn.dataset.overridden = '1';
+        btn.className = 'px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] font-bold whitespace-nowrap';
+        btn.textContent = 'MANUAL OFF';
+        showToast('Actuator overridden to OFF');
+      } else {
+        btn.dataset.overridden = '0';
+        btn.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold whitespace-nowrap';
+        btn.textContent = btn.dataset.label;
+        showToast('Actuator returned to AI autonomous mode');
+      }
+    }
+
+    // ---------- Toast ----------
+    function showToast(msg, type) {
+      const toast = document.getElementById('toastNotification');
+      const icon = document.getElementById('toastIcon');
+      document.getElementById('toastMsg').textContent = msg;
+      icon.className = type === 'warn'
+        ? 'fa-solid fa-triangle-exclamation text-amber-400'
+        : 'fa-solid fa-circle-check text-nvidiaGreen';
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    // ---------- Hero canvas ----------
+    const canvas = document.getElementById('heroCanvas');
+    const ctx = canvas.getContext('2d');
+    let width = 0, height = 0;
+    let particles = [];
+    const mouse = { x: -1000, y: -1000 };
+
+    function resizeCanvas() {
+      width = canvas.width = canvas.parentElement.offsetWidth;
+      height = canvas.height = canvas.parentElement.offsetHeight;
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    class IoTNodeParticle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.radius = Math.random() * 2 + 1;
+        this.color = Math.random() > 0.4 ? '#76b900' : '#004ec4';
+        this.alpha = Math.random() * 0.6 + 0.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0 && dist < 120) {   // guard against divide-by-zero
+          this.x -= (dx / dist) * 1.5;
+          this.y -= (dy / dist) * 1.5;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      resizeCanvas();
+      particles = [];
+      const count = Math.min(80, Math.floor(width / 18));
+      for (let i = 0; i < count; i++) particles.push(new IoTNodeParticle());
+    }
+
+    function animateParticles() {
+      if (!particlesActive) return;
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 110) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = '#76b900';
+            ctx.globalAlpha = (1 - distance / 110) * 0.18;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      canvasAnimationId = requestAnimationFrame(animateParticles);
+    }
+
+    function toggleHeroParticles() {
+      particlesActive = !particlesActive;
+      const icon = document.getElementById('particleIcon');
+      cancelAnimationFrame(canvasAnimationId);       // never run two loops at once
+      if (particlesActive) {
+        icon.className = 'fa-solid fa-pause text-xs';
+        animateParticles();
+        showToast('Ambient IoT simulation resumed.');
+      } else {
+        icon.className = 'fa-solid fa-play text-xs';
+        showToast('Ambient IoT simulation paused.');
+      }
+    }
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(initParticles, 150);
+    });
+
+    // Respect reduced-motion: start paused
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    window.addEventListener('load', () => {
+      initParticles();
+      if (prefersReducedMotion) {
+        particlesActive = false;
+        document.getElementById('particleIcon').className = 'fa-solid fa-play text-xs';
+      } else {
+        animateParticles();
+      }
+    });
+
+    // ---------- Live ticker (demo data) ----------
+    setInterval(() => {
+      const powerEl = document.getElementById('tickerPower');
+      if (powerEl) powerEl.textContent = 118 + Math.floor(Math.random() * 6);
+    }, 3000);
+  </script>
+
+  <!-- ================= FIREBASE AUTH (module) ================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      signInWithPopup,
+      GoogleAuthProvider,
+      sendPasswordResetEmail,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCxurq9VltGgSpIKj8SotXiQiQTy9R8Nf0",
+      authDomain: "ecocampusai-3287.firebaseapp.com",
+      projectId: "ecocampusai-3287",
+      storageBucket: "ecocampusai-3287.firebasestorage.app",
+      messagingSenderId: "605528730201",
+      appId: "1:605528730201:web:5e2f18575dc8b1e804df48",
+      measurementId: "G-3VFDBT367Y"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const btnText = document.getElementById('btnModalText');
+    const btnIcon = document.getElementById('btnModalIcon');
+
+
+    // Friendly error messages
+    function friendlyError(err) {
+      const map = {
+        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/invalid-email': 'Enter a valid email address.',
+        'auth/user-disabled': 'This account has been disabled.',
+        'auth/user-not-found': 'No account found for that email.',
+        'auth/email-already-in-use': 'An account with this email already exists. Try signing in instead.',
+        'auth/weak-password': 'Choose a stronger token: at least 6 characters.',
+        'auth/wrong-password': 'Incorrect email or password.',
+        'auth/too-many-requests': 'Too many attempts. Wait a few minutes and try again.',
+        'auth/network-request-failed': 'Network error. Check your connection.',
+        'auth/popup-closed-by-user': 'Sign-in window was closed before finishing.',
+        'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups and retry.',
+        'auth/unauthorized-domain': 'This domain is not authorized in Firebase Authentication settings.',
+        'auth/operation-not-allowed': 'Email/Password sign-in is not enabled in Firebase Console (Authentication → Sign-in method).',
+        'auth/configuration-not-found': 'Firebase Authentication is not set up yet. In Firebase Console open Authentication and click "Get started".',
+        'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'The Firebase API key is invalid. Re-copy your web app config from Project settings.',
+        'auth/invalid-api-key': 'The Firebase API key is invalid. Re-copy your web app config from Project settings.',
+        'auth/admin-restricted-operation': 'Sign-up is disabled for this Firebase project. Enable Email/Password sign-in.',
+        'auth/operation-not-supported-in-this-environment': 'Open the page through http://localhost or your hosted URL, not as a local file.'
+      };
+      const code = err && err.code;
+      return map[code] || `Something went wrong${code ? ' (' + code + ')' : ''}. Please try again.`;
+    }
+
+    function setBusy(busy, label) {
+      submitBtn.disabled = busy;
+      btnText.textContent = busy ? label : submitLabel();
+      btnIcon.className = busy ? 'fa-solid fa-circle-notch fa-spin text-xs' : 'fa-solid fa-arrow-right text-xs';
+    }
+
+    // Read the user's role from Firestore (users/{uid}.role). Optional: fails safely.
+    async function fetchRole(user) {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        return snap.exists() ? (snap.data().role || null) : null;
+      } catch (err) {
+        console.warn('Could not read user role (check Firestore rules):', err.code || err);
+        return null;
+      }
+    }
+
+    // Create users/{uid} on first sign-in. Everyone starts as "student";
+    // the role they asked for is stored separately so an admin can approve it.
+    async function ensureProfile(user, requestedRole, displayName) {
+      try {
+        const ref = doc(db, 'users', user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) return;
+        await setDoc(ref, {
+          email: user.email,
+          displayName: displayName || user.displayName || '',
+          role: 'student',
+          requestedRole: requestedRole || 'student',
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.warn('Could not create user profile (check Firestore rules):', err.code || err);
+      }
+    }
+
+    // Keep the header in sync with the real auth state
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { updateAuthUI(null); return; }
+      updateAuthUI(user, null);
+      const role = await fetchRole(user);
+      // make sure the user didn't sign out while the role was loading
+      if (auth.currentUser && auth.currentUser.uid === user.uid) updateAuthUI(user, role);
+    });
+
+    async function finishLogin(user) {
+      showAuthMessage('Connection established. Loading environment...', 'success');
+      const role = await fetchRole(user);
+      updateAuthUI(auth.currentUser || user, role);
+      showToast(`Signed in as ${user.displayName || user.email}${role ? ' (' + role + ')' : ''}`);
+      setTimeout(() => {
+        closeAuthModal();
+        document.getElementById('destinations').scrollIntoView({ behavior: 'smooth' });
+      }, 900);
+    }
+
+    // Email + password
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('modalUserEmail').value.trim();
+      const password = document.getElementById('modalUserPass').value;
+
+      if (!email || !password) {
+        showAuthMessage('Enter both your email and access token.', 'error');
+        return;
+      }
+
+      const signup = getAuthMode() === 'signup';
+
+      if (signup) {
+        const name = document.getElementById('modalUserName').value.trim();
+        const confirm = document.getElementById('modalUserPass2').value;
+        if (!name) { showAuthMessage('Enter your full name.', 'error'); return; }
+        if (password.length < 6) { showAuthMessage('Choose a token with at least 6 characters.', 'error'); return; }
+        if (password !== confirm) { showAuthMessage('The two tokens do not match.', 'error'); return; }
+
+        clearAuthMessage();
+        setBusy(true, 'Creating your account...');
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(cred.user, { displayName: name });
+          await ensureProfile(cred.user, getSelectedRole(), name);
+          await finishLogin(cred.user);
+        } catch (err) {
+          console.error(err);
+          showAuthMessage(friendlyError(err), 'error');
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
+
+      clearAuthMessage();
+      setBusy(true, 'Verifying gateway node...');
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        await finishLogin(cred.user);
+      } catch (err) {
+        console.error(err);
+        showAuthMessage(friendlyError(err), 'error');
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    // Google
+    document.getElementById('googleBtn').addEventListener('click', async () => {
+      clearAuthMessage();
+      try {
+        const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+        await ensureProfile(cred.user, getSelectedRole(), cred.user.displayName);
+        await finishLogin(cred.user);
+      } catch (err) {
+        console.error(err);
+        showAuthMessage(friendlyError(err), 'error');
+      }
+    });
+
+    // Password reset
+    document.getElementById('forgotBtn').addEventListener('click', async () => {
+      const email = document.getElementById('modalUserEmail').value.trim();
+      if (!email) {
+        showAuthMessage('Enter your email above first, then select "Forgot token?".', 'info');
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showAuthMessage('Password reset email sent. Check your inbox.', 'success');
+      } catch (err) {
+        console.error(err);
+        showAuthMessage(friendlyError(err), 'error');
+      }
+    });
+
+    // Sign out (called from the header button)
+    window.ecoSignOut = async () => {
+      try {
+        await signOut(auth);
+        showToast('Signed out.');
+      } catch (err) {
+        console.error(err);
+        showToast('Could not sign out. Try again.', 'warn');
+      }
+    };
+  </script>
+
+</body>
+</html>
